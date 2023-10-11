@@ -1,0 +1,153 @@
+version: "3"
+services:
+  mindbox_main:
+    runtime: nvidia
+    restart: on-failure
+    #profiles:
+    #  - donotstart
+    image: improvis/mindbox:v1.3.400
+    network_mode: "host"
+    #ports:
+    #  - target: "50053"
+    #    published: "50053"
+    #  - target: "58110"
+    #    published: "58110"
+    #  - target: "50054"
+    #    published: "50054"
+    environment:
+       # INFO: 1
+      CLIENT_IP: "164.52.213.185"
+       #CLIENT_IP: "15.206.107.157"
+      GRPC_PORT: "50051"
+      SERVER_PORT: "50050"
+      CLIENT_PORT: "58310"
+      # CLIENT_PORT: "50010"
+      FIRE_WORKER_LISTEN_PORT: '50352'
+      FIRE_WORKER_REQUEST_PORT: '50353'
+      FIRE_WORKER_HOST: 'localhost'
+      PEOPLE_WORKER_LISTEN_PORT: '50354'
+      PEOPLE_WORKER_REQUEST_PORT: '50355'
+      #      PEOPLE_WORKER_HOST: '106.51.129.242'
+      PEOPLE_WORKER_HOST: 'localhost'
+      IMAGE_TYPE: "MAIN_GRPC" # IMAGE_TYPE="MAIN_GRPC" - provides connection between VMS and workers - fire detection image(IMAGE_TYPE='fireAndSmokeDetection') and people detection image (IMAGE_TYPE='peopleTracking')
+
+      GRPC_WORKERS: 10
+      DEVICE: "0"
+      FIRE_SMOKE_FILTER_TEST: 0.0
+      FIRE_DETECTION_THRESHOLD: 0.8 # as big float as accurate fire detection (values 0.0 - 1.0)
+      SMOKE_DETECTION_THRESHOLD: 0.8 # as big float as accurate fire detection (values 0.0 - 1.0)
+      PEOPLE_DETECTION_THRESHOLD: 0.7 # as big float as accurate People detection (values 0.0 - 1.0)
+      FACE_DETECTION_THRESHOLD: 0.8 # as big float as accurate face detection (values 0.0 - 1.0)
+      FACE_COMPARISON_THRESHOLD: 0.4 # as big float as accurate face recognition (values 0.0 - 1.0)
+      BODY_FEATURES_SIMILARITY_THRESHOLD: 80 # as small integer as accurate similarity calculation(min value 0)
+      COLLECT_DESCRIPTORS_BY_PERSON: 80 # size of collected descriptors queue for ReId (min integer 0 - as big queue as slow but accurate working ReId)
+      THRESHOLD_TO_CLUSTER_PERSON_DESCRIPTORS: 100 # after collecting descriptors > THRESHOLD_TO_CLUSTER_PERSON_DESCRIPTORS starting to cluster with size COLLECT_DESCRIPTORS_BY_PERSON
+      KEEP_EXTRACT_PERSON_FEATURES_TIME_IN_SEC: 3 # keep extract person features from last high percent detection by adding tracker on its rect (time in seconds)
+      BORDER_TO_GET_FACE_INFO: 20 # increase detected person rect (in pixels) to detect face(integer, min value 0)
+      BORDER_TO_GET_BODY_INFO: 10 # decrease detected person rect (in detected rect percent) to get body info (integer, min value 0)
+      EXCEED_THE_FACE_SIMILARITY_VALUE_TO_SAVE_BODY_FEATURES: 0.2 # for save the body features neet to EXCEED_THE_FACE_SIMILARITY_VALUE_TO_SAVE_BODY_FEATURES + FACE_COMPARISON_THRESHOLD < current_face_recognition_confidence (float, values 0.0 - 1.0)
+      DETECTED_OBJECTS_SIZE_IN_PERCENT_RELATIVELY_FRAME_WIDTH: 10 # as small integer as small objects will be detected (values 0 - 100)
+      DETECTED_OBJECTS_SIZE_IN_PERCENT_RELATIVELY_FRAME_HEIGHT: 10 # as small integer as small objects will be detected (values 0 - 100)
+      PD_FACE_COMPARISON_THRESHOLD: 0.5
+      TURN_OFF_PD_FOR_PEOPLE_TRACKING: 1
+    volumes:
+    # path in your file system : path in docker container file system
+      - /home/mindbox/e2e_user_data/:/MindBoxFireSmokePeople/saved/
+
+
+ # ///////////////////////////////////////////////////////////////////////////
+ 
+  mindbox_fire:
+    runtime: nvidia
+    restart: on-failure
+    #profiles:
+    #  - donotstart
+    image: improvis/mindbox:v1.3.400
+    network_mode: "host"
+    #ports:
+    #  - target: "50053"
+    #    published: "50053"
+    #  - target: "58110"
+    #    published: "58110"
+    #  - target: "50054"
+    #    published: "50054"
+    environment:
+            #INFO: 1
+      CLIENT_IP: "localhost"
+      GRPC_PORT: "50353"
+      SERVER_PORT: "50359"
+      CLIENT_PORT: "50352"
+      IMAGE_TYPE: "fireAndSmokeDetection" # IMAGE_TYPE="MAIN_GRPC" - provides connection between VMS and workers - fire detection image(IMAGE_TYPE='fireAndSmokeDetection') and people detection image (IMAGE_TYPE='peopleTracking')
+
+      GRPC_WORKERS: 10
+      DEVICE: "0"
+      FIRE_SMOKE_FILTER_TEST: 0.0
+      FIRE_DETECTION_THRESHOLD: 0.8 # as big float as accurate fire detection (values 0.0 - 1.0)
+      SMOKE_DETECTION_THRESHOLD: 0.8 # as big float as accurate fire detection (values 0.0 - 1.0)
+      PEOPLE_DETECTION_THRESHOLD: 0.7 # as big float as accurate People detection (values 0.0 - 1.0)
+      FACE_DETECTION_THRESHOLD: 0.5 # as big float as accurate face detection (values 0.0 - 1.0)
+      FACE_COMPARISON_THRESHOLD: 0.35 # as big float as accurate face recognition (values 0.0 - 1.0)
+      BODY_FEATURES_SIMILARITY_THRESHOLD: 80 # as small integer as accurate similarity calculation(min value 0)
+      COLLECT_DESCRIPTORS_BY_PERSON: 80 # size of collected descriptors queue for ReId (min integer 0 - as big queue as slow but accurate working ReId)
+      THRESHOLD_TO_CLUSTER_PERSON_DESCRIPTORS: 100 # after collecting descriptors > THRESHOLD_TO_CLUSTER_PERSON_DESCRIPTORS starting to cluster with size COLLECT_DESCRIPTORS_BY_PERSON
+      KEEP_EXTRACT_PERSON_FEATURES_TIME_IN_SEC: 3 # keep extract person features from last high percent detection by adding tracker on its rect (time in seconds)
+      BORDER_TO_GET_FACE_INFO: 20 # increase detected person rect (in pixels) to detect face(integer, min value 0)
+      BORDER_TO_GET_BODY_INFO: 10 # decrease detected person rect (in detected rect percent) to get body info (integer, min value 0)
+      EXCEED_THE_FACE_SIMILARITY_VALUE_TO_SAVE_BODY_FEATURES: 0.2 # for save the body features neet to EXCEED_THE_FACE_SIMILARITY_VALUE_TO_SAVE_BODY_FEATURES + FACE_COMPARISON_THRESHOLD < current_face_recognition_confidence (float, values 0.0 - 1.0)
+      DETECTED_OBJECTS_SIZE_IN_PERCENT_RELATIVELY_FRAME_WIDTH: 10 # as small integer as small objects will be detected (values 0 - 100)
+      DETECTED_OBJECTS_SIZE_IN_PERCENT_RELATIVELY_FRAME_HEIGHT: 10 # as small integer as small objects will be detected (values 0 - 100)
+      PD_FACE_COMPARISON_THRESHOLD: 0.5
+      TURN_OFF_PD_FOR_PEOPLE_TRACKING: 1
+
+
+    volumes:
+    # path in your file system : path in docker container file system
+      - /home/mindbox/e2e_user_data/:/MindBoxFireSmokePeople/saved/
+
+
+
+ # ///////////////////////////////////////////////////////////////////////////
+  mindbox_people:
+    runtime: nvidia
+    restart: on-failure
+    #profiles:
+    #  - donotstart
+    image: improvis/mindbox:v1.3.400
+    network_mode: "host"
+    #ports:
+    #  - target: "50055"
+    #    published: "50055"
+    #  - target: "58210"
+    #    published: "58210"
+    #  - target: "50056"
+    #    published: "50056"
+    environment:
+      INFO: 1
+      CLIENT_IP: "localhost"
+      GRPC_PORT: "50355"
+      SERVER_PORT: "50350"
+      CLIENT_PORT: "50354"
+      IMAGE_TYPE: "peopleTracking" # IMAGE_TYPE="MAIN_GRPC" - provides connection between VMS and workers - fire detection image(IMAGE_TYPE='fireAndSmokeDetection') and people detection image (IMAGE_TYPE='peopleTracking')
+      GRPC_WORKERS: 10
+      DEVICE: "0"
+      FIRE_SMOKE_FILTER_TEST: 0.0
+      FIRE_DETECTION_THRESHOLD: 0.8 # as big float as accurate fire detection (values 0.0 - 1.0)
+      SMOKE_DETECTION_THRESHOLD: 0.8 # as big float as accurate fire detection (values 0.0 - 1.0)
+      PEOPLE_DETECTION_THRESHOLD: 0.5 # as big float as accurate People detection (values 0.0 - 1.0)
+      FACE_DETECTION_THRESHOLD: 0.5 # as big float as accurate face detection (values 0.0 - 1.0)
+      FACE_COMPARISON_THRESHOLD: 0.35 # as big float as accurate face recognition (values 0.0 - 1.0)
+      BODY_FEATURES_SIMILARITY_THRESHOLD: 150 # as small integer as accurate similarity calculation(min value 0)
+      COLLECT_DESCRIPTORS_BY_PERSON: 2 # size of collected descriptors queue for ReId (min integer 0 - as big queue as slow but accurate working ReId)
+      THRESHOLD_TO_CLUSTER_PERSON_DESCRIPTORS: 1 # after collecting descriptors > THRESHOLD_TO_CLUSTER_PERSON_DESCRIPTORS starting to cluster with size COLLECT_DESCRIPTORS_BY_PERSON
+      KEEP_EXTRACT_PERSON_FEATURES_TIME_IN_SEC: 3 # keep extract person features from last high percent detection by adding tracker on its rect (time in seconds)
+      BORDER_TO_GET_FACE_INFO: 20 # increase detected person rect (in pixels) to detect face(integer, min value 0)
+      BORDER_TO_GET_BODY_INFO: 10 # decrease detected person rect (in detected rect percent) to get body info (integer, min value 0)
+      EXCEED_THE_FACE_SIMILARITY_VALUE_TO_SAVE_BODY_FEATURES: 0.15 # for save the body features neet to EXCEED_THE_FACE_SIMILARITY_VALUE_TO_SAVE_BODY_FEATURES + FACE_COMPARISON_THRESHOLD < current_face_recognition_confidence (float, values 0.0 - 1.0)
+      DETECTED_OBJECTS_SIZE_IN_PERCENT_RELATIVELY_FRAME_WIDTH: 10 # as small integer as small objects will be detected (values 0 - 100)
+      DETECTED_OBJECTS_SIZE_IN_PERCENT_RELATIVELY_FRAME_HEIGHT: 10 # as small integer as small objects will be detected (values 0 - 100)
+      PD_FACE_COMPARISON_THRESHOLD: 0.5
+      TURN_OFF_PD_FOR_PEOPLE_TRACKING: 1
+
+    volumes:
+    # path in your file system : path in docker container file system
+      - /home/mindbox/e2e_user_data/:/MindBoxFireSmokePeople/saved/
